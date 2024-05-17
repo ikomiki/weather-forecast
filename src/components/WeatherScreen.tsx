@@ -11,6 +11,8 @@ import { CurrentWeather } from "../utils/CurrentWeather";
 import { getCurrentWeather, getWetherForecasts } from "../utils/WeatherService";
 import WeatherForecast from "../utils/WeatherForecast";
 import WeatherForecastFlatList from "./WeatherForecastFlatList";
+import { useLocalSearchParams, useNavigation } from "expo-router";
+import { City } from "../models/City";
 
 const WeatherScreen = (): JSX.Element => {
   const [currentWeather, setCurrentWeather] = useState<CurrentWeather | null>(
@@ -19,12 +21,24 @@ const WeatherScreen = (): JSX.Element => {
   const [weatherForecasts, setWeatherForecasts] = useState<
     WeatherForecast[] | null
   >(null);
+  const navigation = useNavigation();
+
+  const city = useLocalSearchParams<City>();
+  if (city.en === undefined || city.name === undefined) {
+    return <Text>都市情報の不正</Text>;
+  }
+
+  useEffect(() => {
+    navigation.setOptions({
+      title: `${city.name}の天気`,
+    });
+  }, [navigation, city.name]);
 
   useEffect(() => {
     if (!currentWeather) {
       (async () => {
         try {
-          const currentWeather = await getCurrentWeather("tokyo");
+          const currentWeather = await getCurrentWeather(city.en ?? "");
           console.log("current weather", currentWeather);
           console.log("天気情報の取得完了");
           setCurrentWeather(currentWeather);
@@ -40,7 +54,7 @@ const WeatherScreen = (): JSX.Element => {
     if (!weatherForecasts) {
       (async () => {
         try {
-          const weatherForecasts = await getWetherForecasts("tokyo");
+          const weatherForecasts = await getWetherForecasts(city.en ?? "");
           console.log("weather forecasts", weatherForecasts);
           console.log("天気予報の取得完了");
           setWeatherForecasts(weatherForecasts);
