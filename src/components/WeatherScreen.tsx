@@ -8,20 +8,26 @@ import {
   View,
 } from "react-native";
 import { CurrentWeather } from "../utils/CurrentWeather";
-import { getCurrentWeather } from "../utils/getCurrentWeather";
+import { getCurrentWeather, getWetherForecasts } from "../utils/WeatherService";
+import WeatherForecast from "../utils/WeatherForecast";
+import WeatherForecastFlatList from "./WeatherForecastFlatList";
 
 const WeatherScreen = (): JSX.Element => {
   const [currentWeather, setCurrentWeather] = useState<CurrentWeather | null>(
     null
   );
+  const [weatherForecasts, setWeatherForecasts] = useState<
+    WeatherForecast[] | null
+  >(null);
+
   useEffect(() => {
     if (!currentWeather) {
       (async () => {
         try {
-          const nextWeather = await getCurrentWeather("tokyo");
-          console.log("next weather", nextWeather);
+          const currentWeather = await getCurrentWeather("tokyo");
+          console.log("current weather", currentWeather);
           console.log("天気情報の取得完了");
-          setCurrentWeather(nextWeather);
+          setCurrentWeather(currentWeather);
         } catch (error) {
           console.error(error);
           Alert.alert("Error", (error as Error).message);
@@ -30,7 +36,23 @@ const WeatherScreen = (): JSX.Element => {
     }
   }, []);
 
-  if (!currentWeather) {
+  useEffect(() => {
+    if (!weatherForecasts) {
+      (async () => {
+        try {
+          const weatherForecasts = await getWetherForecasts("tokyo");
+          console.log("weather forecasts", weatherForecasts);
+          console.log("天気予報の取得完了");
+          setWeatherForecasts(weatherForecasts);
+        } catch (error) {
+          console.error(error);
+          Alert.alert("Error", (error as Error).message);
+        }
+      })();
+    }
+  }, []);
+
+  if (!currentWeather || !weatherForecasts) {
     return (
       <View style={styles.container}>
         <ActivityIndicator />
@@ -44,6 +66,7 @@ const WeatherScreen = (): JSX.Element => {
     <View style={styles.container}>
       <Text style={styles.text}>{main} </Text>
       <Image source={{ uri: iconURL }} style={styles.icon} />
+      <WeatherForecastFlatList forecasts={weatherForecasts} />
     </View>
   );
 };
