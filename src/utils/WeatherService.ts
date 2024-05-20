@@ -2,6 +2,7 @@ import { CurrentWeather } from "./CurrentWeather";
 import { WeatherModel } from "../models/WeatherModel";
 import WeatherForecast from "./WeatherForecast";
 import { ForecastListModel } from "../models/ForecastModel";
+import { City } from "../models/City";
 
 const BASE_URL = `https://api.openweathermap.org/data/2.5/`;
 const API_KEY = process.env.EXPO_PUBLIC_OPEN_WEATHER_API_KEY;
@@ -16,11 +17,15 @@ console.log("API_KEY", API_KEY);
  * @returns
  */
 function getCurrentWeatherEndPoint(query: string): string {
-  return `${BASE_URL}weather?q=${query}&appid=${API_KEY}&lang=${LANG}`;
+  return `${BASE_URL}weather?${query}&appid=${API_KEY}&lang=${LANG}`;
 }
 
-export async function getCurrentWeather(city: string): Promise<CurrentWeather> {
-  const endPoint = getCurrentWeatherEndPoint(city);
+export async function getCurrentWeather(city: City): Promise<CurrentWeather> {
+  const query =
+    city.latitude && city.longitude
+      ? `lat=${city.latitude}&lon=${city.longitude}`
+      : `q=${city.en}`;
+  const endPoint = getCurrentWeatherEndPoint(query);
   console.log("endPoint", endPoint);
   const response = await fetch(endPoint);
   console.log("response", response);
@@ -42,13 +47,17 @@ export async function getCurrentWeather(city: string): Promise<CurrentWeather> {
  * @returns
  */
 function getForecastEndPoint(query: string): string {
-  return `${BASE_URL}forecast?q=${query}&appid=${API_KEY}&lang=${LANG}`;
+  return `${BASE_URL}forecast?${query}&appid=${API_KEY}&lang=${LANG}`;
 }
 
 export async function getWetherForecasts(
-  city: string
+  city: City
 ): Promise<WeatherForecast[]> {
-  const endPoint = getForecastEndPoint(city);
+  const query =
+    city.latitude && city.longitude
+      ? `lat=${city.latitude}&lon=${city.longitude}`
+      : `q=${city.en}`;
+  const endPoint = getForecastEndPoint(query);
   console.log("endPoint", endPoint);
   const response = await fetch(endPoint);
   console.log("response", response);

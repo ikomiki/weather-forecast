@@ -23,10 +23,23 @@ const WeatherScreen = (): JSX.Element => {
   >(null);
   const navigation = useNavigation();
 
-  const city = useLocalSearchParams<City>();
-  if (city.en === undefined || city.name === undefined) {
+  const cityParams = useLocalSearchParams<{
+    en: string;
+    name: string;
+    latitude: string;
+    longitude: string;
+  }>();
+  if (cityParams.en === undefined || cityParams.name === undefined) {
     return <Text>都市情報の不正</Text>;
   }
+  const city: City = {
+    en: cityParams.en,
+    name: cityParams.name,
+    latitude: cityParams.latitude ? parseFloat(cityParams.latitude) : undefined,
+    longitude: cityParams.longitude
+      ? parseFloat(cityParams.longitude)
+      : undefined,
+  };
 
   useEffect(() => {
     navigation.setOptions({
@@ -38,7 +51,7 @@ const WeatherScreen = (): JSX.Element => {
     if (!currentWeather) {
       (async () => {
         try {
-          const currentWeather = await getCurrentWeather(city.en ?? "");
+          const currentWeather = await getCurrentWeather(city);
           console.log("current weather", currentWeather);
           console.log("天気情報の取得完了");
           setCurrentWeather(currentWeather);
@@ -54,7 +67,7 @@ const WeatherScreen = (): JSX.Element => {
     if (!weatherForecasts) {
       (async () => {
         try {
-          const weatherForecasts = await getWetherForecasts(city.en ?? "");
+          const weatherForecasts = await getWetherForecasts(city);
           console.log("weather forecasts", weatherForecasts);
           console.log("天気予報の取得完了");
           setWeatherForecasts(weatherForecasts);
